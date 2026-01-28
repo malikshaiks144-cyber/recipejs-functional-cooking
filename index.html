@@ -25,11 +25,18 @@
                 <button data-filter="hard" class="filter-btn">Hard Recipes</button>
                 <button data-filter="quick" class="filter-btn">Quick Recipes (Under 30 minutes)</button>
             </div>
+            <div class="controls-right">
+                <div class="search-wrap">
+                    <input id="search-input" type="search" placeholder="Search by title or ingredient..." />
+                    <button id="favorites-only" class="filter-btn">Show Favorites</button>
+                </div>
 
-            <div class="sorts">
-                <button data-sort="name" class="sort-btn">Name (A–Z)</button>
-                <button data-sort="time" class="sort-btn">Time (Fastest First)</button>
+                <div class="sorts">
+                    <button data-sort="name" class="sort-btn">Name (A–Z)</button>
+                    <button data-sort="time" class="sort-btn">Time (Fastest First)</button>
+                </div>
             </div>
+            <div id="recipe-counter" aria-live="polite" style="margin-top:0.75rem;text-align:center">Showing 0 of 0 recipes</div>
         </section>
         <div id="recipe-container">
             <!-- Recipe cards will be rendered here by JavaScript -->

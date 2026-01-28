@@ -164,6 +164,40 @@ main {
     transform: translateY(-2px);
 }
 
+/* Search and favorites */
+.controls-right {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.search-wrap {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#search-input {
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    width: 260px;
+}
+
+.favorite-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #bbb;
+}
+
+.favorite-btn.favorited {
+    color: #e24e4e;
+}
+
 .details {
     margin-top: 0.75rem;
     padding: 0.75rem;

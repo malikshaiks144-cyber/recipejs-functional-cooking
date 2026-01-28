@@ -169,11 +169,15 @@ const RecipeApp = (function () {
     const recipeContainer = document.querySelector('#recipe-container');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const sortButtons = document.querySelectorAll('.sort-btn');
+    const searchInput = document.querySelector('#search-input');
+    const favoritesOnlyBtn = document.querySelector('#favorites-only');
+    const recipeCounter = document.querySelector('#recipe-counter');
 
     // --- Card template ---
-    const createRecipeCard = (recipe) => {
+    const createRecipeCard = (recipe, isFavorited) => {
         return `
         <div class="recipe-card" data-id="${recipe.id}">
+            <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" title="Toggle favorite">${isFavorited ? '♥' : '♡'}</button>
             <h3>${escapeHtml(recipe.title)}</h3>
             <div class="recipe-meta">
                 <span>⏱️ ${recipe.time} min</span>
@@ -190,8 +194,33 @@ const RecipeApp = (function () {
     };
 
     // --- Rendering ---
+    // favorites are stored as an object map in localStorage under this key
+    const STORAGE_KEY = 'recipe_favorites_v1';
+    const loadFavorites = () => {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    };
+
+    const saveFavorites = (map) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+        } catch (e) {
+            console.warn('Could not save favorites', e);
+        }
+    };
+
+    let favoritesMap = loadFavorites();
+
     const renderRecipes = (list) => {
-        recipeContainer.innerHTML = list.map(createRecipeCard).join('');
+        recipeContainer.innerHTML = list.map(r => createRecipeCard(r, !!favoritesMap[r.id])).join('');
+        // update counter
+        if (recipeCounter) {
+            recipeCounter.textContent = `Showing ${list.length} of ${recipes.length} recipes`;
+        }
     };
 
     // -------------------------
@@ -207,11 +236,30 @@ const RecipeApp = (function () {
 
     let currentFilterFn = filterAll;
     let currentSortFn = sortIdentity;
+    let currentSearch = '';
+    let favoritesOnly = false;
+
+    const matchesSearch = (recipe, term) => {
+        if (!term) return true;
+        const t = term.toLowerCase();
+        if (recipe.title.toLowerCase().includes(t)) return true;
+        if (Array.isArray(recipe.ingredients)) {
+            return recipe.ingredients.some(i => String(i).toLowerCase().includes(t));
+        }
+        return false;
+    };
 
     const updateDisplay = () => {
-        const filtered = currentFilterFn(recipes);
-        const sorted = currentSortFn(filtered);
-        renderRecipes(sorted);
+        let list = currentFilterFn(recipes);
+        // apply search
+        list = list.filter(r => matchesSearch(r, currentSearch));
+        // apply favorites-only
+        if (favoritesOnly) {
+            list = list.filter(r => !!favoritesMap[r.id]);
+        }
+        // apply sort
+        list = currentSortFn(list);
+        renderRecipes(list);
     };
 
     const setActiveFilterButton = (activeBtn) => {
@@ -224,6 +272,23 @@ const RecipeApp = (function () {
 
     // --- Event handling (delegation) ---
     const onContainerClick = (e) => {
+        // favorite button
+        const favBtn = e.target.closest('.favorite-btn');
+        if (favBtn) {
+            const card = favBtn.closest('.recipe-card');
+            if (!card) return;
+            const id = Number(card.dataset.id);
+            if (favoritesMap[id]) {
+                delete favoritesMap[id];
+            } else {
+                favoritesMap[id] = true;
+            }
+            saveFavorites(favoritesMap);
+            // re-render current view to reflect changes
+            updateDisplay();
+            return;
+        }
+
         const btn = e.target.closest('.toggle-btn');
         if (!btn) return;
         const card = btn.closest('.recipe-card');
@@ -254,6 +319,14 @@ const RecipeApp = (function () {
     };
 
     // --- Wire up controls ---
+    const debounce = (fn, wait = 300) => {
+        let t = null;
+        return (...args) => {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    };
+
     const wireControls = () => {
         filterButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -282,6 +355,25 @@ const RecipeApp = (function () {
                 updateDisplay();
             });
         });
+
+        // search (debounced)
+        if (searchInput) {
+            const handleSearch = (e) => {
+                currentSearch = e.target.value.trim();
+                updateDisplay();
+            };
+            searchInput.addEventListener('input', debounce(handleSearch, 300));
+        }
+
+        // favorites-only toggle
+        if (favoritesOnlyBtn) {
+            favoritesOnlyBtn.addEventListener('click', () => {
+                favoritesOnly = !favoritesOnly;
+                favoritesOnlyBtn.classList.toggle('active', favoritesOnly);
+                favoritesOnlyBtn.textContent = favoritesOnly ? 'Showing Favorites' : 'Show Favorites';
+                updateDisplay();
+            });
+        }
     };
 
     // --- Public init ---
