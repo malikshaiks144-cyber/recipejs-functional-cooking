@@ -142,3 +142,49 @@ main {
     color: #fff;
     border-color: #5a67d8;
 }
+
+/* Card action buttons */
+.card-actions {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.toggle-btn {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #333;
+}
+
+.toggle-btn:hover {
+    transform: translateY(-2px);
+}
+
+.details {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    display: none;
+}
+
+.details.open {
+    display: block;
+}
+
+.steps-list {
+    padding-left: 1.25rem;
+}
+
+.steps-list ol {
+    margin-top: 0.5rem;
+}
+
+.ingredients-list {
+    padding-left: 1.25rem;
+}
